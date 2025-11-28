@@ -1,9 +1,19 @@
+"""
+Database models for the Book Alchemy application.
+
+Defines the SQLAlchemy models:
+- Author: representing book authors
+- Book: representing books and linking to authors
+"""
+
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-# Define a table-like class called "Author"
+
 class Author(db.Model):
+    """Database model representing an author."""
+
     __tablename__ = "authors"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -21,18 +31,28 @@ class Author(db.Model):
 
 
 class Book(db.Model):
+    """Database model representing a book."""
+
     __tablename__ = "books"
 
     id = db.Column(db.Integer, primary_key=True)
     isbn = db.Column(db.String(20), nullable=False)
     title = db.Column(db.String(120), nullable=False)
     publication_year = db.Column(db.Integer, nullable=False)
-    author_id = db.Column(db.Integer, db.ForeignKey('authors.id'), nullable=False)
+
+    author_id = db.Column(
+        db.Integer,
+        db.ForeignKey("authors.id"),
+        nullable=False,
+    )
+
     # Relationship helper
     author = db.relationship("Author", backref="books")
 
     def __repr__(self):
         return f"<Book id={self.id} title={self.title!r}>"
+
     def __str__(self):
         if self.author:
             return f"{self.title} ({self.author})"
+        return self.title

@@ -1,27 +1,40 @@
-from flask import flash, Flask, url_for, redirect, request, render_template
-from sqlalchemy import or_
-from datetime import datetime
-from data_models import db, Author, Book
 import os
+from datetime import datetime
+
+from flask import Flask, flash, redirect, render_template, request, url_for
+from sqlalchemy import or_
+
+from data_models import Author, Book, db
 
 app = Flask(__name__)
-app.secret_key="first-timer"
+app.secret_key = "first-timer"
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-#connect the app with the database
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'data/library.sqlite')}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-#initilize the app with extension
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+# Connect the app with the database
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    f"sqlite:///{os.path.join(BASE_DIR, 'data/library.sqlite')}"
+)
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize the app with the db extension
 db.init_app(app)
 
-@app.route('/')
-def index():
-    """show all books and sort by author, title or year, in ascending or descending order"""
-    sort = request.args.get('sort', 'title')   # title, author, year
-    order = request.args.get('order', 'asc')   # asc oder desc
-    q = request.args.get('q', '').strip() #searching term request from the query
 
-    # base query, where we are joining the author to the book table so we can sort by author.name
+@app.route("/")
+def index():
+    """
+    Show all books and allow sorting by author, title, or year
+    in ascending or descending order. Supports a simple search.
+    """
+    # Sort: title, author, year
+    sort = request.args.get("sort", "title")
+    # Order: asc or desc
+    order = request.args.get("order", "asc")
+    # Search query
+    q = request.args.get("q", "").strip()
+
+    # Base query: join author to book table so we can sort by author.name
     query = Book.query.join(Author)
 
     if q:
@@ -29,48 +42,60 @@ def index():
         query = query.filter(
             or_(
                 Book.title.ilike(like_pattern),
-                Author.name.ilike(like_pattern)
+                Author.name.ilike(like_pattern),
             )
         )
 
-    # choose column to sort
-    if sort == 'author':
+    # Choose column to sort
+    if sort == "author":
         sort_column = Author.name
-    elif sort == 'year':
+    elif sort == "year":
         sort_column = Book.publication_year
     else:
-        # default
-        sort = 'title'
+        # Default: sort by title
+        sort = "title"
         sort_column = Book.title
 
-    # descending or ascending
-    if order == 'desc':
+    # Descending or ascending
+    if order == "desc":
         books = query.order_by(sort_column.desc()).all()
     else:
-        order = 'asc'  # Fallback
+        order = "asc"  # Fallback
         books = query.order_by(sort_column.asc()).all()
 
-    return render_template("home.html", books=books, sort=sort, order=order, q=q)
+    return render_template(
+        "home.html",
+        books=books,
+        sort=sort,
+        order=order,
+        q=q,
+    )
 
-@app.route('/add_author', methods=['POST', 'GET'])
+
+@app.route("/add_author", methods=["GET", "POST"])
 def add_author():
-    """POST adds a new author, GET gives the form to the user"""
-    message=None
-    if request.method == 'POST':
-        name = request.form['name']
-         #Birthdate parsing to datetime
-        birthdate_str = request.form.get('birth_date')  # e.g. "1948-09-20"
+    """POST adds a new author, GET shows the form."""
+    message = None
+
+    if request.method == "POST":
+        name = request.form["name"]
+
+        # Birth date parsing to datetime.date
+        birthdate_str = request.form.get("birth_date")
         birth_date = datetime.strptime(birthdate_str, "%Y-%m-%d").date()
-        #checking if deathdate exists and then parsing to datetime object
-        death_str = request.form.get('date_of_death', "").strip()
+
+        # Death date may be empty
+        death_str = request.form.get("date_of_death", "").strip()
         if death_str:
             date_of_death = datetime.strptime(death_str, "%Y-%m-%d").date()
         else:
             date_of_death = None
 
-        new_author = Author(name=name,
-                            birth_date=birth_date,
-                            date_of_death=date_of_death)
+        new_author = Author(
+            name=name,
+            birth_date=birth_date,
+            date_of_death=date_of_death,
+        )
 
         db.session.add(new_author)
         db.session.commit()
@@ -79,65 +104,76 @@ def add_author():
 
     return render_template("add_author.html", message=message)
 
-@app.route('/add_book', methods=['POST', 'GET'])
+
+@app.route("/add_book", methods=["GET", "POST"])
 def add_book():
-    """POST adds a new book, GET gives the form to the user"""
-    message=None
-    authors = Author.query.all() #laoding all Authors from library
+    """POST adds a new book, GET shows the form."""
+    message = None
 
-    if request.method == 'POST':
-        isbn = request.form['isbn']
-        title = request.form['title']
-        publication_year = request.form['publication_year']
-        author_id = request.form['author_id']
+    # Load all authors from the database
+    authors = Author.query.all()
 
-        new_book = Book(isbn=isbn, title=title, publication_year=publication_year, author_id=author_id)
+    if request.method == "POST":
+        isbn = request.form["isbn"]
+        title = request.form["title"]
+        publication_year = request.form["publication_year"]
+        author_id = request.form["author_id"]
+
+        new_book = Book(
+            isbn=isbn,
+            title=title,
+            publication_year=publication_year,
+            author_id=author_id,
+        )
 
         db.session.add(new_book)
         db.session.commit()
 
         message = f"Book {new_book.title} added successfully"
 
-
     return render_template("add_book.html", message=message, authors=authors)
 
-@app.route('/delete_book/<int:book_id>', methods=['POST'])
+
+@app.route("/delete_book/<int:book_id>", methods=["POST"])
 def delete_book(book_id):
-    # getting the book
+    """Delete a book and optionally its author if no books remain."""
     book = Book.query.get(book_id)
 
     if not book:
         flash("Error: Book not found.", "error")
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
 
-    # save details for message
+    # Save details for message
     title = book.title
     author = book.author
 
-    # delete book
+    # Delete book
     db.session.delete(book)
     db.session.commit()
 
-    # check if author has another book
+    # Check if author has another book
     remaining_books = Book.query.filter_by(author_id=author.id).count()
 
     if remaining_books == 0:
-        # if author has no remaining book -> delete author
+        # If author has no remaining book -> delete author
         author_name = author.name
         db.session.delete(author)
         db.session.commit()
         flash(
-            f"Book '{title}' deleted and author '{author_name}' removed (no more books left).",
-            "success"
+            (
+                f"Book '{title}' deleted and author '{author_name}' removed "
+                "(no more books left)."
+            ),
+            "success",
         )
     else:
         flash(f"Book '{title}' deleted successfully.", "success")
 
-    return redirect(url_for('index'))
-
-app.run(debug=True)
+    return redirect(url_for("index"))
 
 
-"""
-with app.app_context():
-    db.create_all()"""
+if __name__ == "__main__":
+    # Use this once to create tables:
+    # with app.app_context():
+    #     db.create_all()
+    app.run(debug=True)

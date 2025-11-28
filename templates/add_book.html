@@ -4,30 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add Book</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
+    <header class="navbar">
+      <div class="nav-brand">My Library</div>
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('add_book') }}" class="active">Add Book</a>
+        <a href="{{ url_for('add_author') }}">Add Author</a>
+      </nav>
+    </header>
 
-  <form action="/add_book" method="POST">
-   <label for="isbn">ISBN:</label>
-  <input type="text" id="isbn" name="isbn" required><br><br>
-  <label for="title">Title:</label>
-  <input type="text" id="title" name="title" required><br><br>
-  <label for="publication_year">Publication Year:</label>
-  <input type="number" id="publication_year" name="publication_year"><br><br>
-  <input type="submit" value="Add Book">
-  <label for="author">Select Author:</label>
-  <select name="author_id" id="author" required>
-    <option value="">-- Choose an author --</option>
+    <main class="container">
+      <section class="form-section">
+        <h1>Add Book</h1>
 
-    {% for author in authors %}
-        <option value="{{ author.id }}">
-            {{ author.name }}
-        </option>
-    {% endfor %}
-  </select>
-  </form>
-    {% if message %}
-      <p>{{ message }}</p>
-    {% endif %}
+        <form action="{{ url_for('add_book') }}" method="POST" class="form-card">
+          <div class="form-group">
+            <label for="isbn">ISBN</label>
+            <input type="text" id="isbn" name="isbn" required>
+          </div>
+
+          <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" required>
+          </div>
+
+          <div class="form-group">
+            <label for="publication_year">Publication Year</label>
+            <input type="number" id="publication_year" name="publication_year">
+          </div>
+
+          <div class="form-group">
+            <label for="author">Select Author</label>
+            <select name="author_id" id="author" required>
+              <option value="">-- Choose an author --</option>
+              {% for author in authors %}
+                <option value="{{ author.id }}">{{ author.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Add Book</button>
+            <a href="{{ url_for('index') }}" class="btn ghost">Cancel</a>
+          </div>
+        </form>
+
+        {% if message %}
+          <p class="status-message">{{ message }}</p>
+        {% endif %}
+      </section>
+    </main>
   </body>
 </html>

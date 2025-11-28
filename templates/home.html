@@ -4,68 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Library – Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
+    <header class="navbar">
+      <div class="nav-brand">My Library</div>
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('add_book') }}">Add Book</a>
+        <a href="{{ url_for('add_author') }}">Add Author</a>
+      </nav>
+    </header>
 
-    <!-- sorting control -->
-    <form method="get" action="{{ url_for('index') }}">
-      <label for="sort">Sort by:</label>
-      <select name="sort" id="sort" onchange="this.form.submit()">
-        <option value="title" {% if sort == 'title' %}selected{% endif %}>Title</option>
-        <option value="author" {% if sort == 'author' %}selected{% endif %}>Author</option>
-        <option value="year" {% if sort == 'year' %}selected{% endif %}>Publication year</option>
-      </select>
+    <main class="container">
+      <section class="controls">
+        <!-- Sortier-Kontrollen -->
+        <form method="get" action="{{ url_for('index') }}" class="control-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="sort">Sort by</label>
+              <select name="sort" id="sort">
+                <option value="title" {% if sort == 'title' %}selected{% endif %}>Title</option>
+                <option value="author" {% if sort == 'author' %}selected{% endif %}>Author</option>
+                <option value="year" {% if sort == 'year' %}selected{% endif %}>Publication year</option>
+              </select>
+            </div>
 
-      <label for="order">Order:</label>
-      <select name="order" id="order" onchange="this.form.submit()">
-        <option value="asc" {% if order == 'asc' %}selected{% endif %}>Ascending</option>
-        <option value="desc" {% if order == 'desc' %}selected{% endif %}>Descending</option>
-      </select>
-      </form>
-    <br>
-    <!-- search -->
-    <form method="get" action="{{ url_for('index') }}">
-      <!-- sort + order as hidden to keep their values -->
-      <input type="hidden" name="sort" value="{{ sort }}">
-      <input type="hidden" name="order" value="{{ order }}">
+            <div class="form-group">
+              <label for="order">Order</label>
+              <select name="order" id="order">
+                <option value="asc" {% if order == 'asc' %}selected{% endif %}>Ascending</option>
+                <option value="desc" {% if order == 'desc' %}selected{% endif %}>Descending</option>
+              </select>
+            </div>
 
-      <label for="q">Search:</label>
-      <input type="text" id="q" name="q" value="{{ q or '' }}">
-      <button type="submit">Search</button>
-    </form>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <ul>
-              {% for category, message in messages %}
-                <li class="{{ category }}">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-    <hr>
+            <div class="form-group">
+              <button type="submit" class="btn primary">Apply</button>
+            </div>
+          </div>
+        </form>
 
-    {% if books %}
-      {% for book in books %}
-        <div>
-          <h3>{{ book.title }}</h3>
-          <p>Author: {{ book.author.name }}</p>
-          <p>Year: {{ book.publication_year }}</p>
-          <img src="https://covers.openlibrary.org/b/isbn/{{ book.isbn }}-M.jpg"
-               alt="Cover for {{ book.title }}">
-         <!--delete button -->
-          <form method="post" action="{{ url_for('delete_book', book_id=book.id) }}" style="margin-top: 8px;">
-          <button type="submit">Delete Book</button>
-          </form>
-        </div>
-        <hr>
-      {% endfor %}
-    {% else %}
-      <p>No books found{% if q %} matching "{{ q }}"{% endif %}.</p>
-    {% endif %}
+        <!-- Suchfeld -->
+        <form method="get" action="{{ url_for('index') }}" class="control-form">
+          <input type="hidden" name="sort" value="{{ sort }}">
+          <input type="hidden" name="order" value="{{ order }}">
 
-      <hr>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="q">Search</label>
+              <input type="text" id="q" name="q" value="{{ q or '' }}" placeholder="Title or author…">
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn secondary">Search</button>
+            </div>
+          </div>
+        </form>
+      </section>
 
+      <!-- Flash-Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <section class="flash-messages">
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </section>
+        {% endif %}
+      {% endwith %}
 
+      <!-- Bücher-Galerie -->
+      <section class="book-gallery">
+        {% if books %}
+          <div class="book-grid">
+            {% for book in books %}
+              <article class="book-card">
+                <div class="book-cover">
+                  <img src="https://covers.openlibrary.org/b/isbn/{{ book.isbn }}-M.jpg"
+                       alt="Cover for {{ book.title }}">
+                </div>
+                <div class="book-info">
+                  <h3 class="book-title">{{ book.title }}</h3>
+                  <p class="book-author">{{ book.author.name }}</p>
+                  <p class="book-year">{{ book.publication_year }}</p>
+                </div>
+                <form method="post"
+                      action="{{ url_for('delete_book', book_id=book.id) }}"
+                      class="book-actions">
+                  <button type="submit" class="btn danger">Delete Book</button>
+                </form>
+              </article>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="empty-state">
+            No books found{% if q %} matching "<span>{{ q }}</span>"{% endif %}.
+          </p>
+        {% endif %}
+      </section>
+    </main>
   </body>
-
 </html>

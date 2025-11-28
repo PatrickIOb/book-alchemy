@@ -4,22 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add Author</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
+    <header class="navbar">
+      <div class="nav-brand">My Library</div>
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('add_book') }}">Add Book</a>
+        <a href="{{ url_for('add_author') }}" class="active">Add Author</a>
+      </nav>
+    </header>
 
-  <form action="/add_author" method="POST">
-  <label for="name">Author Name:</label> 
-  <input type="text" id="name" name="name" required><br><br>
-  <label for="birth_date">Birthdate:</label>
-  <input type="date" id="birth_date" name="birth_date" required><br><br>
-  <label for="date_of_death">Date of Death:</label> 
-  <input type="date" id="date_of_death" name="date_of_death"><br><br>
-  <input type="submit" value="Add Author"> 
-  </form>
+    <main class="container">
+      <section class="form-section">
+        <h1>Add Author</h1>
 
-  {% if message %}
-    <p>{{ message }}</p>
-  {% endif %}
+        <form action="{{ url_for('add_author') }}" method="POST" class="form-card">
+          <div class="form-group">
+            <label for="name">Author Name</label>
+            <input type="text" id="name" name="name" required>
+          </div>
 
+          <div class="form-group">
+            <label for="birth_date">Birthdate</label>
+            <input type="date" id="birth_date" name="birth_date" required>
+          </div>
+
+          <div class="form-group">
+            <label for="date_of_death">Date of Death (optional)</label>
+            <input type="date" id="date_of_death" name="date_of_death">
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn primary">Add Author</button>
+            <a href="{{ url_for('index') }}" class="btn ghost">Cancel</a>
+          </div>
+        </form>
+
+        {% if message %}
+          <p class="status-message">{{ message }}</p>
+        {% endif %}
+      </section>
+    </main>
   </body>
 </html>

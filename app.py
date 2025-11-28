@@ -1,10 +1,12 @@
-from flask import Flask, request, render_template
+from flask import flash, Flask, url_for, redirect, request, render_template
 from sqlalchemy import or_
 from datetime import datetime
 from data_models import db, Author, Book
 import os
 
 app = Flask(__name__)
+app.secret_key="first-timer"
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 #connect the app with the database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'data/library.sqlite')}"
@@ -98,6 +100,40 @@ def add_book():
 
 
     return render_template("add_book.html", message=message, authors=authors)
+
+@app.route('/delete_book/<int:book_id>', methods=['POST'])
+def delete_book(book_id):
+    # getting the book
+    book = Book.query.get(book_id)
+
+    if not book:
+        flash("Error: Book not found.", "error")
+        return redirect(url_for('index'))
+
+    # save details for message
+    title = book.title
+    author = book.author
+
+    # delete book
+    db.session.delete(book)
+    db.session.commit()
+
+    # check if author has another book
+    remaining_books = Book.query.filter_by(author_id=author.id).count()
+
+    if remaining_books == 0:
+        # if author has no remaining book -> delete author
+        author_name = author.name
+        db.session.delete(author)
+        db.session.commit()
+        flash(
+            f"Book '{title}' deleted and author '{author_name}' removed (no more books left).",
+            "success"
+        )
+    else:
+        flash(f"Book '{title}' deleted successfully.", "success")
+
+    return redirect(url_for('index'))
 
 app.run(debug=True)
 

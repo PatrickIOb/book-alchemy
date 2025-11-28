@@ -7,7 +7,7 @@
   </head>
   <body>
 
-    <!-- Sortier-Kontrollen -->
+    <!-- sorting control -->
     <form method="get" action="{{ url_for('index') }}">
       <label for="sort">Sort by:</label>
       <select name="sort" id="sort" onchange="this.form.submit()">
@@ -23,9 +23,9 @@
       </select>
       </form>
     <br>
-    <!-- Suchfeld -->
+    <!-- search -->
     <form method="get" action="{{ url_for('index') }}">
-      <!-- sort + order als hidden mitschicken, damit die Einstellungen erhalten bleiben -->
+      <!-- sort + order as hidden to keep their values -->
       <input type="hidden" name="sort" value="{{ sort }}">
       <input type="hidden" name="order" value="{{ order }}">
 
@@ -33,7 +33,15 @@
       <input type="text" id="q" name="q" value="{{ q or '' }}">
       <button type="submit">Search</button>
     </form>
-
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul>
+              {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
     <hr>
 
     {% if books %}
@@ -44,6 +52,10 @@
           <p>Year: {{ book.publication_year }}</p>
           <img src="https://covers.openlibrary.org/b/isbn/{{ book.isbn }}-M.jpg"
                alt="Cover for {{ book.title }}">
+         <!--delete button -->
+          <form method="post" action="{{ url_for('delete_book', book_id=book.id) }}" style="margin-top: 8px;">
+          <button type="submit">Delete Book</button>
+          </form>
         </div>
         <hr>
       {% endfor %}

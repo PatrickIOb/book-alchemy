@@ -35,6 +35,7 @@ Dark mode UI styling
 
 Organizing a multi-page Flask project
 
+
 🛠 Technologies Used
 ```
 Component	        Purpose
@@ -46,6 +47,7 @@ Jinja2	                HTML templating
 HTML5 + CSS3	        UI & styling
 OpenLibrary Covers API	Book cover images via ISBN
 ```
+
 📁 Project Structure
 ```
 project/
@@ -86,11 +88,13 @@ Assign to existing author
 
 Automatic cover lookup via ISBN
 
+
 ✔ Sorting
 
 Sort by title, author name, or publication year
 
 Ascending / descending
+
 
 ✔ Keyword Search
 
@@ -100,6 +104,7 @@ Search author names
 
 Partial & case-insensitive matching (LIKE / ILIKE)
 
+
 ✔ Deleting Books
 
 Delete a book with one click
@@ -107,6 +112,7 @@ Delete a book with one click
 If the book's author has no other books → delete author automatically
 
 Feedback through Flask's flash() system
+
 
 ✔ Modern Gallery UI
 
@@ -118,6 +124,7 @@ Styled buttons, cards, and forms
 
 Navigation bar for quick access
 
+
 🧩 Data Models
 
 Author
@@ -128,6 +135,7 @@ class Author(db.Model):
     birth_date = db.Column(db.Date, nullable=False)
     date_of_death = db.Column(db.Date, nullable=True)
 ```
+
 Book
 ```
 class Book(db.Model):
@@ -171,6 +179,7 @@ If you modify database location, adjust this line in app.py:
 ```
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data/library.sqlite"
 ```
+
 🧹 Deleting Books
 
 When deleting a book:
@@ -183,13 +192,16 @@ If not → deletes the author as well
 
 All actions provide feedback via flash() messages
 
+
 📦 Sample Data
 
 You can seed sample authors & books to quickly test the UI.
 
+
 📜 License
 
 This project is free to use for educational and personal purposes.
+
 
 💡 Future Improvements (Ideas)
 
